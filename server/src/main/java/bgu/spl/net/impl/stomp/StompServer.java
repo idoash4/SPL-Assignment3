@@ -39,13 +39,15 @@ public class StompServer {
                     FrameMessageEncoderDecoder::new,
                     connections//message encoder decoder factory
             ).serve();
-        } else {
+        } else if (serverType.equals("tpc")) {
             Server.threadPerClient(
                     port, //port
                     () -> new FrameMessagingProtocol(Collections.unmodifiableList(listeners)), //protocol factory
                     FrameMessageEncoderDecoder::new,
                     connections
             ).serve();
+        } else {
+            System.out.println("Unknown server type: " + serverType);
         }
     }
 }
