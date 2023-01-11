@@ -46,6 +46,14 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
     }
 
+    public void terminate() {
+        try {
+            close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
     @Override
     public void close() throws IOException {
         connected = false;

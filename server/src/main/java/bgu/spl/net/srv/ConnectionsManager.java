@@ -1,14 +1,13 @@
 package bgu.spl.net.srv;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsManager<T> implements Connections<T> {
-    private ConcurrentHashMap<Integer, ConnectionHandler<T>> connectedClients;
-    private ConcurrentHashMap<String, List<Integer>> channels;
-    private AtomicInteger clientsCounter = new AtomicInteger(0);
+    private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectedClients;
+    private final ConcurrentHashMap<String, List<Integer>> channels;
+    private final AtomicInteger clientsCounter = new AtomicInteger(0);
 
 
     public ConnectionsManager() {
@@ -44,13 +43,9 @@ public class ConnectionsManager<T> implements Connections<T> {
 
     @Override
     public void disconnect(int connectionId) {
-        try {
-            ConnectionHandler<T> clientHandler = connectedClients.remove(connectionId);
-            if (clientHandler != null)
-                clientHandler.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ConnectionHandler<T> clientHandler = connectedClients.remove(connectionId);
+        if (clientHandler != null)
+            clientHandler.terminate();
     }
 
     @Override

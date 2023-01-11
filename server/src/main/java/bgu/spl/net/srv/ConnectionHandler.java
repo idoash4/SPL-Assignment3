@@ -21,4 +21,6 @@ public interface ConnectionHandler<T> extends Closeable {
 
     void startProtocol(int connectionId);
 
+    void terminate();
+
 }

@@ -1,6 +1,9 @@
 package bgu.spl.net.impl.stomp;
 
 import bgu.spl.net.api.MessageListener;
+import bgu.spl.net.impl.stomp.listeners.ConnectMessageListener;
+import bgu.spl.net.impl.stomp.listeners.ReceiptMessageListener;
+import bgu.spl.net.impl.stomp.listeners.SubscriptionMessageListener;
 import bgu.spl.net.srv.Server;
 import bgu.spl.net.srv.ConnectionsManager;
 
@@ -12,6 +15,7 @@ public class StompServer {
     public static void main(String[] args) {
         ConnectionsManager<Frame> connections = new ConnectionsManager<>();
         ArrayList<MessageListener<Frame>> listeners = new ArrayList<>();
+
         ConnectMessageListener connectListener = new ConnectMessageListener();
         connectListener.start(connections);
         SubscriptionMessageListener subscriptionMessageListener = new SubscriptionMessageListener();
@@ -28,16 +32,17 @@ public class StompServer {
             return;
         }
 
-        String serverType = args[0];
-        int port = Integer.parseInt(args[1]);
+        int port = Integer.parseInt(args[0]);
+        String serverType = args[1];
+
 
         if (serverType.equals("reactor")) {
             Server.reactor(
                     Runtime.getRuntime().availableProcessors(),
                     port, //port
                     () -> new FrameMessagingProtocol(Collections.unmodifiableList(listeners)), //protocol factory
-                    FrameMessageEncoderDecoder::new,
-                    connections//message encoder decoder factory
+                    FrameMessageEncoderDecoder::new, //message encoder decoder factory
+                    connections
             ).serve();
         } else if (serverType.equals("tpc")) {
             Server.threadPerClient(

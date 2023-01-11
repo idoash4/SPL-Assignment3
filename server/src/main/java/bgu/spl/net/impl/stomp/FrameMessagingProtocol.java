@@ -11,7 +11,6 @@ public class FrameMessagingProtocol implements StompMessagingProtocol<Frame> {
     private Connections<Frame> connections;
     private final List<MessageListener<Frame>> listeners;
     public static final String VERSION = "1.2";
-    private volatile boolean shouldTerminate = false;
 
     public FrameMessagingProtocol(List<MessageListener<Frame>> listeners) {
         this.listeners = listeners;
@@ -25,7 +24,7 @@ public class FrameMessagingProtocol implements StompMessagingProtocol<Frame> {
 
     @Override
     public void process(Frame message) {
-        if (shouldTerminate) {
+        if (shouldTerminate()) {
             return;
         }
 

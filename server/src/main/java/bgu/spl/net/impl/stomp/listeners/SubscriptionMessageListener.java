@@ -1,6 +1,9 @@
-package bgu.spl.net.impl.stomp;
+package bgu.spl.net.impl.stomp.listeners;
 
 import bgu.spl.net.api.MessageListener;
+import bgu.spl.net.impl.stomp.Frame;
+import bgu.spl.net.impl.stomp.FrameType;
+import bgu.spl.net.impl.stomp.ProtocolException;
 import bgu.spl.net.srv.Connections;
 
 import java.util.ArrayList;
@@ -34,7 +37,7 @@ public class SubscriptionMessageListener implements MessageListener<Frame> {
     }
 
     @Override
-    public void process(int connectionId, Frame message) throws ProtocolException{
+    public void process(int connectionId, Frame message) throws ProtocolException {
         FrameType type = message.getType();
         switch (type) {
             case SUBSCRIBE:
