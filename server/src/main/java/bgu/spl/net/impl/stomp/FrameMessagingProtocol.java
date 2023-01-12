@@ -48,6 +48,6 @@ public class FrameMessagingProtocol implements StompMessagingProtocol<Frame> {
 
     @Override
     public boolean shouldTerminate() {
-        return connections.isConnected(connectionId);
+        return !connections.isConnected(connectionId);
     }
 }
