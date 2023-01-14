@@ -67,8 +67,10 @@ public class FrameMessageEncoderDecoder implements MessageEncoderDecoder<Frame> 
 
             // Read the rest of the message as the body of the frame
             StringBuilder body = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                body.append(line);
+            char[] buffer = new char[1024];
+            int n;
+            while ((n = reader.read(buffer)) != -1) {
+                body.append(buffer, 0, n);
             }
 
             return new Frame(type, headers, body.toString());

@@ -18,27 +18,31 @@ StompFrame::StompFrame(std::string command, std::map<std::string, std::string> h
     this->body = std::move(body);
 }
 
-std::string StompFrame::getCommand() const {
+std::string StompFrame::get_command() const {
     return command;
 }
 
-std::map<std::string, std::string> StompFrame::getHeaders() const {
+std::map<std::string, std::string> StompFrame::get_headers() const {
     return headers;
 }
 
-std::string StompFrame::getHeader(const std::string &key) const {
+std::string StompFrame::get_header(const std::string& key) const {
     return headers.at(key);
 }
 
-void StompFrame::setHeader(const std::string &key, std::string value) {
+void StompFrame::set_header(const std::string &key, std::string value) {
     headers[key] = std::move(value);
 }
 
-std::string StompFrame::getBody() const {
+std::string StompFrame::get_body() const {
     return body;
 }
 
-std::string StompFrame::toString() const {
+void StompFrame::set_body(const std::string& body) {
+    this->body = body;
+}
+
+std::string StompFrame::to_string() const {
     std::string output = command + "\n";
     for (auto &header : headers) {
         output += header.first + ":" + header.second + "\n";
@@ -46,13 +50,13 @@ std::string StompFrame::toString() const {
     output += "\n";
 
     if (!body.empty()) {
-        output += body + "\n";
+        output += body;
     }
 
     return output;
 }
 
-StompFrame StompFrame::parseFrame(const std::string& message) {
+StompFrame StompFrame::parse_frame(const std::string& message) {
     std::stringstream stream(message);
     std::string command, line, body;
     std::getline(stream, command, '\n');
@@ -69,7 +73,8 @@ StompFrame StompFrame::parseFrame(const std::string& message) {
         headers[key] = value;
     }
 
-    std::getline(stream, body);
+    // We can assume there is no null terminator in the string, so we can use it to read until the end of the stream
+    std::getline(stream, body, '\0');
 
     return {command, headers, body};
 }

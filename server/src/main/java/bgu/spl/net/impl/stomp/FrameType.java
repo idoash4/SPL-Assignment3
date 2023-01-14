@@ -2,6 +2,7 @@ package bgu.spl.net.impl.stomp;
 
 public enum FrameType {
     CONNECT,
+    STOMP,
     CONNECTED,
     MESSAGE,
     RECEIPT,

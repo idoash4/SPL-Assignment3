@@ -1,12 +1,15 @@
+#include <iostream>
+#include <fstream>
 #include "StompProtocol.h"
 #include "Client.h"
+#include "event.h"
 
 Client::~Client() {
     delete stompProtocol;
     delete connectionHandler;
 }
 
-void Client::readFromKeyboard() {
+void Client::read_from_keyboard() {
     while (true) {
         std::string line;
         std::getline(std::cin, line);
@@ -20,9 +23,9 @@ void Client::readFromKeyboard() {
             if (command == "logout") {
                 logout();
             } else if (command == "join") {
-                joinGame(stream);
+                join_game(stream);
             } else if (command == "exit") {
-                exitGame(stream);
+                exit_game(stream);
             } else if (command == "report") {
                 report(stream);
             } else if (command == "summary") {
@@ -36,7 +39,7 @@ void Client::readFromKeyboard() {
     }
 }
 
-void Client::readFromServer() {
+void Client::read_from_server() {
     while (true) {
         // Wait for the client to connect
         std::unique_lock<std::mutex> lock(readMutex);
@@ -44,7 +47,7 @@ void Client::readFromServer() {
         while (true) {
             std::string message;
             connectionHandler->getFrameAscii(message, '\0');
-            StompFrame frame = StompFrame::parseFrame(message);
+            StompFrame frame = StompFrame::parse_frame(message);
             if (!stompProtocol->process(frame)) {
                 disconnect();
                 break;
@@ -53,8 +56,8 @@ void Client::readFromServer() {
     }
 }
 
-void Client::sendFrame(const StompFrame &frame) {
-    connectionHandler->sendFrameAscii(frame.toString(), '\0');
+void Client::send_frame(const StompFrame &frame) {
+    connectionHandler->sendFrameAscii(frame.to_string(), '\0');
 }
 
 void Client::login(std::stringstream &stream) {
@@ -98,22 +101,33 @@ void Client::logout() {
     this->stompProtocol->disconnect();
 }
 
-void Client::joinGame(std::stringstream &stream) {
+void Client::join_game(std::stringstream &stream) {
     std::string gameName;
     stream >> gameName;
     this->stompProtocol->subscribe(gameName);
 }
 
-void Client::exitGame(std::stringstream &stream) {
+void Client::exit_game(std::stringstream &stream) {
     std::string gameName;
     stream >> gameName;
     this->stompProtocol->unsubscribe(gameName);
 }
 
 void Client::report(std::stringstream &stream) {
-
+    std::string file_path;
+    stream >> file_path;
+    this->stompProtocol->report(file_path);
 }
 
 void Client::summary(std::stringstream &stream) {
-
+    std::string gameName, user, file_path;
+    stream >> gameName;
+    stream >> user;
+    stream >> file_path;
+    Game game = this->stompProtocol->get_game(gameName, user);
+    std::string output = game.to_string();
+    std::cout << output << std::endl;
+    std::ofstream f(file_path);
+    f << output;
+    f.close();
 }

@@ -42,7 +42,6 @@ public class FrameMessagingProtocol implements StompMessagingProtocol<Frame> {
             connections.send(connectionId, ex.toErrorFrame());
             listeners.forEach(listener -> listener.clear(connectionId));
             connections.disconnect(connectionId);
-            System.out.println("Connection " + connectionId + " disconnected due to protocol error");
         }
     }
 

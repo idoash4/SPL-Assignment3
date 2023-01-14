@@ -43,6 +43,7 @@ public class ConnectionsManager<T> implements Connections<T> {
 
     @Override
     public void disconnect(int connectionId) {
+        // We first remove the client so the server won't send any more messages
         ConnectionHandler<T> clientHandler = connectedClients.remove(connectionId);
         if (clientHandler != null)
             clientHandler.terminate();

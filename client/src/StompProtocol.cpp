@@ -3,93 +3,132 @@
 StompProtocol::StompProtocol(Client& client) {
     this->client = &client;
     receiptWaitingMessages = std::map<int, StompFrame>();
+    subscriptionIdCounter = 0;
     receiptIdCounter = 0;
 }
 
 bool StompProtocol::process(const StompFrame& frame){
-    if (frame.getCommand() == "CONNECTED") {
+    if (frame.get_command() == "CONNECTED") {
         std::cout << "Login successful" << std::endl;
-    } else if (frame.getCommand() == "RECEIPT") {
+    } else if (frame.get_command() == "RECEIPT") {
         if (!receipt(frame)) {
             return false;
         }
-    } else if (frame.getCommand() == "ERROR") {
-        std::cout << frame.getHeader("message") << std::endl;
+    } else if (frame.get_command() == "MESSAGE") {
+        receive_message(frame);
+    } else if (frame.get_command() == "ERROR") {
+        std::cout << frame.get_header("message") << std::endl;
         return false;
     }
     return true;
 }
 
-void StompProtocol::sendFrame(StompFrame &frame, bool receipt) {
+void StompProtocol::send_frame(StompFrame &frame, bool receipt) {
     if (receipt) {
         int receiptId = receiptIdCounter++;
-        frame.setHeader("receipt", std::to_string(receiptId));
+        frame.set_header("receipt", std::to_string(receiptId));
         receiptWaitingMessages.emplace(receiptId, frame);
     }
-    client->sendFrame(frame);
+    client->send_frame(frame);
 }
 
 void StompProtocol::connect(const std::string& username, const std::string& password) {
+    this->username = username;
     StompFrame frame("CONNECT");
-    frame.setHeader("accept-version", "1.2");
-    frame.setHeader("host", "stomp.cs.bgu.ac.il");
-    frame.setHeader("login", username);
-    frame.setHeader("passcode", password);
-    sendFrame(frame);
+    frame.set_header("accept-version", "1.2");
+    frame.set_header("host", "stomp.cs.bgu.ac.il");
+    frame.set_header("login", username);
+    frame.set_header("passcode", password);
+    send_frame(frame);
 }
 
 void StompProtocol::disconnect() {
     StompFrame frame("DISCONNECT");
-    sendFrame(frame);
+    send_frame(frame, true);
 }
 
 void StompProtocol::subscribe(const std::string& channel) {
     StompFrame frame("SUBSCRIBE");
-    frame.setHeader("destination", channel);
-    frame.setHeader("id", std::to_string(++subscriptionIdCounter));
+    frame.set_header("destination", channel);
+    frame.set_header("id", std::to_string(++subscriptionIdCounter));
     subscriptions.emplace(subscriptionIdCounter, channel);
-    sendFrame(frame, true);
+    send_frame(frame, true);
 }
 
 void StompProtocol::unsubscribe(const std::string& channel) {
     StompFrame frame("UNSUBSCRIBE");
-    frame.setHeader("destination", channel);
+    frame.set_header("destination", channel);
     for (auto & subscription : subscriptions) {
         if (subscription.second == channel) {
-            frame.setHeader("id", std::to_string(subscription.first));
+            frame.set_header("id", std::to_string(subscription.first));
             break;
         }
     }
-    sendFrame(frame, true);
+    send_frame(frame, true);
 }
 
 bool StompProtocol::receipt(const StompFrame &frame) {
-    int receiptId = std::stoi(frame.getHeader("receipt-id"));
+    int receiptId = std::stoi(frame.get_header("receipt-id"));
     StompFrame request = receiptWaitingMessages.at(receiptId);
     receiptWaitingMessages.erase(receiptId);
-    if (request.getCommand() == "DISCONNECT") {
+    if (request.get_command() == "DISCONNECT") {
         return false;
-    } else if (request.getCommand() == "SUBSCRIBE") {
-        subscribeReceipt(request);
-    } else if (request.getCommand() == "UNSUBSCRIBE") {
-        unsubscribeReceipt(request);
+    } else if (request.get_command() == "SUBSCRIBE") {
+        subscribe_receipt(request);
+    } else if (request.get_command() == "UNSUBSCRIBE") {
+        unsubscribe_receipt(request);
     }
     return true;
 }
 
-void StompProtocol::subscribeReceipt(const StompFrame &frame) {
-    std::string channel = frame.getHeader("destination");
-    int subscriptionId = std::stoi(frame.getHeader("id"));
+void StompProtocol::subscribe_receipt(const StompFrame &frame) {
+    std::string channel = frame.get_header("destination");
+    int subscriptionId = std::stoi(frame.get_header("id"));
     subscriptions.emplace(subscriptionId, channel);
     std::cout << "Joined channel " << channel << std::endl;
 }
 
-void StompProtocol::unsubscribeReceipt(const StompFrame &frame) {
-    std::string channel = frame.getHeader("destination");
-    int subscriptionId = std::stoi(frame.getHeader("id"));
+void StompProtocol::unsubscribe_receipt(const StompFrame &frame) {
+    std::string channel = frame.get_header("destination");
+    int subscriptionId = std::stoi(frame.get_header("id"));
     subscriptions.erase(subscriptionId);
     std::cout << "Exited channel " << channel << std::endl;
 }
 
+void StompProtocol::report(const std::string& file_path) {
+    names_and_events events = parseEventsFile(this->username, file_path);
+    StompFrame frame("SEND");
+    frame.set_header("destination", events.team_a_name + "_" + events.team_b_name);
+    for (Event& event : events.events) {
+        frame.set_body(event.to_string());
+        send_frame(frame);
+    }
+}
+
+void StompProtocol::receive_message(const StompFrame &frame) {
+    std::string channel = frame.get_header("destination");
+    Event event(frame.get_body());
+    std::string game_name = event.get_team_a_name() + '_' + event.get_team_b_name();
+    std::string user = event.get_user();
+
+    // Add the game if it is new
+    if (games.count(game_name) == 0) {
+        games.emplace(game_name, std::map<std::string, Game>());
+    }
+
+    if (games.at(game_name).count(user)) {
+        games.at(game_name).at(user).add_event(event);
+    } else {
+        games.at(game_name).emplace(user, Game(event.get_team_a_name(), event.get_team_b_name()));
+        games.at(game_name).at(user).add_event(event);
+    }
+}
+
+Game StompProtocol::get_game(std::string game_name, std::string user) {
+    if (games.count(game_name) == 0 || games.at(game_name).count(user) == 0) {
+        std::cout << "No updates for this game name and user name" << std::endl;
+    }
+    return games.at(game_name).at(user);
+}
 
 

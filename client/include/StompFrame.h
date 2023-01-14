@@ -13,11 +13,12 @@ public:
     StompFrame(std::string command, std::map<std::string, std::string> headers);
     explicit StompFrame(std::string command);
 
-    static StompFrame parseFrame(const std::string& message);
-    std::string getCommand() const;
-    std::map<std::string, std::string> getHeaders() const;
-    std::string getHeader(const std::string& key) const;
-    void setHeader(const std::string &key, std::string value);
-    std::string getBody() const;
-    std::string toString() const;
+    static StompFrame parse_frame(const std::string& message);
+    std::string get_command() const;
+    std::map<std::string, std::string> get_headers() const;
+    std::string get_header(const std::string& key) const;
+    void set_header(const std::string &key, std::string value);
+    std::string get_body() const;
+    void set_body(const std::string& body);
+    std::string to_string() const;
 };

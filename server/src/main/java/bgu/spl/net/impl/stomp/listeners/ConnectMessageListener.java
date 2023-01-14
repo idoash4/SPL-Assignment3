@@ -30,6 +30,7 @@ public class ConnectMessageListener implements MessageListener<Frame> {
     public void process(int connectionId, Frame message) throws ProtocolException {
         switch (message.getType()) {
             case CONNECT:
+            case STOMP:
                 login(connectionId, message);
                 break;
             case DISCONNECT:

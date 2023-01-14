@@ -58,7 +58,7 @@ public class Frame {
         headers.forEach((k, v) -> builder.append(k).append(HEADER_DELIMITER).append(v).append("\n"));
         builder.append("\n");
         if (body != null)
-            builder.append(body).append("\n");
+            builder.append(body);
         return builder.toString();
     }
 }

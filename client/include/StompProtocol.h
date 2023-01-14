@@ -1,21 +1,12 @@
 #pragma once
 
 #include "Client.h"
+#include "Game.h"
 
 class Client;
 
 class StompProtocol
 {
-private:
-    Client* client;
-    std::map<int, StompFrame> receiptWaitingMessages;
-    std::map<int, std::string> subscriptions;
-    int receiptIdCounter;
-    int subscriptionIdCounter;
-    void sendFrame(StompFrame& frame, bool receipt = false);
-    bool receipt(const StompFrame& frame);
-    void subscribeReceipt(const StompFrame &frame);
-    void unsubscribeReceipt(const StompFrame &frame);
 public:
     StompProtocol(Client& client);
     bool process(const StompFrame& frame);
@@ -23,4 +14,19 @@ public:
     void disconnect();
     void subscribe(const std::string& channel);
     void unsubscribe(const std::string& channel);
+    void report(const std::string& file_path);
+    Game get_game(std::string game_name, std::string user);
+private:
+    Client* client;
+    std::string username;
+    std::map<int, StompFrame> receiptWaitingMessages;
+    std::map<int, std::string> subscriptions;
+    std::map<std::string, std::map<std::string, Game>> games;
+    int receiptIdCounter;
+    int subscriptionIdCounter;
+    void send_frame(StompFrame& frame, bool receipt = false);
+    bool receipt(const StompFrame& frame);
+    void subscribe_receipt(const StompFrame &frame);
+    void unsubscribe_receipt(const StompFrame &frame);
+    void receive_message(const StompFrame &frame);
 };

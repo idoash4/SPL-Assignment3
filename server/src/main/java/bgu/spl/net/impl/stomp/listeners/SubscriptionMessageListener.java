@@ -100,8 +100,8 @@ public class SubscriptionMessageListener implements MessageListener<Frame> {
             Frame broadcastFrame = new Frame(FrameType.MESSAGE);
             broadcastFrame.setHeader("subscription", subscribers.get(subscriberConnectionId));
             broadcastFrame.setHeader("message-id", String.valueOf(topicMessage.getId()));
-            broadcastFrame.setHeader("destination", topicMessage.getContent());
-            broadcastFrame.setBody(message.getBody());
+            broadcastFrame.setHeader("destination", topicName);
+            broadcastFrame.setBody(topicMessage.getContent());
             connections.send(subscriberConnectionId, broadcastFrame);
         }
     }
