@@ -1,9 +1,6 @@
 #include "Game.h"
 
-Game::Game(std::string team_a_name, std::string team_b_name) {
-    this->team_a_name = team_a_name;
-    this->team_b_name = team_b_name;
-}
+Game::Game(std::string team_a_name, std::string team_b_name) : team_a_name(std::move(team_a_name)), team_b_name(std::move(team_b_name)), general_stats(), team_a_stats(), team_b_stats(), events() {}
 
 void Game::add_event(Event event) {
     for (auto &general_stat : event.get_game_updates()) {

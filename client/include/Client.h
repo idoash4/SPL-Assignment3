@@ -9,7 +9,7 @@ class StompProtocol;
 
 class Client {
 public:
-    Client() = default;
+    Client();
     ~Client();
     // This class has a mutex and shouldn't be copied or moved
     Client(const Client& other) = delete;

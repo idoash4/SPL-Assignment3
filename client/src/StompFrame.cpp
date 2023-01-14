@@ -3,20 +3,11 @@
 #include <iostream>
 #include <boost/asio.hpp>
 
-StompFrame::StompFrame(std::string command) {
-    this->command = std::move(command);
-}
+StompFrame::StompFrame(std::string command) : command(std::move(command)), headers(), body() {}
 
-StompFrame::StompFrame(std::string command, std::map<std::string, std::string> headers) {
-    this->command = std::move(command);
-    this->headers = std::move(headers);
-}
+StompFrame::StompFrame(std::string command, std::map<std::string, std::string> headers) : command(std::move(command)), headers(std::move(headers)), body() {}
 
-StompFrame::StompFrame(std::string command, std::map<std::string, std::string> headers, std::string body) {
-    this->command = std::move(command);
-    this->headers = std::move(headers);
-    this->body = std::move(body);
-}
+StompFrame::StompFrame(std::string command, std::map<std::string, std::string> headers, std::string body) : command(std::move(command)), headers(std::move(headers)), body(std::move(body)) {}
 
 std::string StompFrame::get_command() const {
     return command;

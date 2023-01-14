@@ -1,11 +1,6 @@
 #include "StompProtocol.h"
 
-StompProtocol::StompProtocol(Client& client) {
-    this->client = &client;
-    receiptWaitingMessages = std::map<int, StompFrame>();
-    subscriptionIdCounter = 0;
-    receiptIdCounter = 0;
-}
+StompProtocol::StompProtocol(Client& client) : client(&client), username(), receiptWaitingMessages(), subscriptions(), games(), receiptIdCounter(0), subscriptionIdCounter(0) {}
 
 bool StompProtocol::process(const StompFrame& frame){
     if (frame.get_command() == "CONNECTED") {
@@ -124,11 +119,11 @@ void StompProtocol::receive_message(const StompFrame &frame) {
     }
 }
 
-Game StompProtocol::get_game(std::string game_name, std::string user) {
+std::string StompProtocol::get_game_summary(std::string game_name, std::string user) {
     if (games.count(game_name) == 0 || games.at(game_name).count(user) == 0) {
-        std::cout << "No updates for this game name and user name" << std::endl;
+        return "";
     }
-    return games.at(game_name).at(user);
+    return games.at(game_name).at(user).to_string();
 }
 
 

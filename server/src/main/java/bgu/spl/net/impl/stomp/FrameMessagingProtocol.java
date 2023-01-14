@@ -1,12 +1,12 @@
 package bgu.spl.net.impl.stomp;
 
 import bgu.spl.net.api.MessageListener;
-import bgu.spl.net.api.StompMessagingProtocol;
+import bgu.spl.net.api.MessagingProtocol;
 import bgu.spl.net.srv.Connections;
 
 import java.util.List;
 
-public class FrameMessagingProtocol implements StompMessagingProtocol<Frame> {
+public class FrameMessagingProtocol implements MessagingProtocol<Frame> {
     private int connectionId;
     private Connections<Frame> connections;
     private final List<MessageListener<Frame>> listeners;

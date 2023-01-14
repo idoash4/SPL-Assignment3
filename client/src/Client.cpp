@@ -4,6 +4,8 @@
 #include "Client.h"
 #include "event.h"
 
+Client::Client() : connectionHandler(nullptr), stompProtocol(nullptr), readMutex(), readReady() {}
+
 Client::~Client() {
     delete stompProtocol;
     delete connectionHandler;
@@ -124,10 +126,15 @@ void Client::summary(std::stringstream &stream) {
     stream >> gameName;
     stream >> user;
     stream >> file_path;
-    Game game = this->stompProtocol->get_game(gameName, user);
-    std::string output = game.to_string();
-    std::cout << output << std::endl;
+    std::string game_summary = this->stompProtocol->get_game_summary(gameName, user);
+
+    if (game_summary.empty()) {
+        std::cout << "No updates for this game name and user name" << std::endl;
+        return;
+    }
+
+    std::cout << game_summary << std::endl;
     std::ofstream f(file_path);
-    f << output;
+    f << game_summary;
     f.close();
 }
